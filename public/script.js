@@ -4,20 +4,22 @@ const roomContainer = document.getElementById('room-container')
 const messageForm = document.getElementById('send-container')
 const messageInput = document.getElementById('message-input')
 
-// var allMessages = {}
+var allMessages = []
 
 if (messageForm != null) {
   // const name = prompt('What is your name?')
 
-  appendMessage('Dołączyły: ' + userName)
+  // appendMessage('dołączył: ' + userName)
   socket.emit('new-user', roomName, userName)
+  socket.emit('get-all-messages', roomName)
 
   messageForm.addEventListener('submit', e => {
     e.preventDefault()
     const message = messageInput.value
-    appendMessage(`You: ${message}`)
+    appendMessage(`${userName}: ${message}`)
     // allMessages.append(`${userName}: ${data.message}`)
-    socket.emit('send-chat-message', roomName, message)
+    allMessages.push(`${userName}: ${message}`)
+    socket.emit('send-chat-message', roomName, message, allMessages)
     messageInput.value = ''
   })
 }
@@ -35,19 +37,19 @@ socket.on('room-created', room => {
 
 socket.on('chat-message', data => {
   appendMessage(`${data.name}: ${data.message}`)
-  // allMessages.append(`${data.name}: ${data.message}`)
-  // socket.emit('save-messages', allMessages, roomName)
+  allMessages.append(`${data.name}: ${data.message}`)
 })
 
 socket.on('user-connected', name => {
   // clearMessages()
-  // socket.emit('get-all-messages', roomName)
-  appendMessage(`dołączył ${name}`)
+  socket.emit('get-all-messages', roomName)
+  // appendMessage(`dołączył ${name}`)
 })
 
 socket.on('get-messages', messages => {
-  allMessages = messages
-  for(msg in allMessages) {
+  allMessages = JSON.parse(messages)
+  clearMessages()
+  for(let msg of allMessages) {
     appendMessage(msg)
   }
 })
@@ -64,5 +66,4 @@ function appendMessage(message) {
 
 function clearMessages() {
   messageContainer.innerHTML = ""
-  allMessages = {}
 }
