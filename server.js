@@ -45,9 +45,10 @@ io.on('connection', socket => {
     rooms[room].users[socket.id] = name
     socket.to(room).broadcast.emit('user-connected', name)
   })
-  socket.on('send-chat-message', (room, message) => {
-    // console.log('saving', messages)
-    // postMessages(JSON.stringify(messages), room)
+  socket.on('send-chat-message', (room, message, allMessages) => {
+    console.log('saving', message)
+    console.log(allMessages)
+    postMessages(JSON.stringify(allMessages), room)
     socket.to(room).broadcast.emit('chat-message', { message: message, name: rooms[room].users[socket.id] })
 
   })
@@ -59,11 +60,11 @@ io.on('connection', socket => {
   })
   socket.on('save-messages', (messages, room) => {
     console.log('saving', messages)
-    // postMessages(JSON.stringify(messages), room)
+    postMessages(JSON.stringify(messages), room)
   })
 
   socket.on('get-all-messages', (room) => {
-    // getMessages(socket, room)
+    getMessages(socket, room)
   })
 })
 
@@ -82,7 +83,7 @@ function getMessages(socket, room) {
   // let json = require(history_file);
   // var taskId = board.name;
   // var state = JSON.parse(json);
-
+  console.log(room)
   var url = `http://localhost:8080/taskSessions/` + room + `/tool_state/chat`
   var headers = {
       "Token": 'chat_status'
@@ -91,14 +92,17 @@ function getMessages(socket, room) {
           headers: headers
       })
       .then(function (response) {
+        console.log("res")
         console.log(response)
         console.log(response.data.status)
-          socket.emit('get-messages', JSON.parse(response.data.status))
+        console.log(JSON.parse(response.data.status))
+        socket.emit('get-messages', response.data.status)
       })
 
 }
 
 function postMessages(messages, room) {
+
   var url = `http://localhost:8080/taskSessions/` + room + `/tool_state/chat`
   var data = {
       taskSessionId: room,
@@ -113,7 +117,6 @@ function postMessages(messages, room) {
           headers: headers
       })
       .then(function (response) {
-        console.log(response)
 
       })
 }
